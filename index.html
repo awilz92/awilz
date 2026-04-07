@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Casino Tracker" />
+<title>Casino Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    background: #f2f2f7;
+    color: #1c1c1e;
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .header {
+    background: #1a6e3c;
+    color: white;
+    padding: 52px 20px 16px;
+    text-align: left;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .nav {
+    display: flex;
+    background: white;
+    border-bottom: 0.5px solid #d1d1d6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    color: #8e8e93;
+    border: none;
+    background: transparent;
+    border-bottom: 2.5px solid transparent;
+  }
+  .nav-btn.active { color: #1a6e3c; border-bottom-color: #1a6e3c; }
+  .content { padding: 20px 16px; max-width: 520px; margin: 0 auto; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .fg { margin-bottom: 14px; }
+  .fg:last-child { margin-bottom: 0; }
+  label {
+    font-size: 12px;
+    color: #8e8e93;
+    display: block;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 500;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e5e5ea;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #f9f9f9;
+    color: #1c1c1e;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #1a6e3c;
+    background: white;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pl-wrap { display: flex; gap: 8px; align-items: center; }
+  .toggle {
+    display: flex;
+    border: 1px solid #e5e5ea;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .tog {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    background: #f9f9f9;
+    color: #8e8e93;
+  }
+  .tog.win-on { background: #d4edda; color: #0f5132; }
+  .tog.loss-on { background: #fde8e8; color: #842029; }
+  .primary-btn {
+    width: 100%;
+    padding: 14px;
+    background: #1a6e3c;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+  }
+  .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .sec-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: #1c1c1e;
+    border: 1px solid #e5e5ea;
+    border-radius: 12px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .toast {
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .toast.ok { background: #d4edda; color: #0f5132; display: block; }
+  .toast.err { background: #fde8e8; color: #842029; display: block; }
+  .toast.info { background: #cfe2ff; color: #084298; display: block; }
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8e8e93;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+  .buyin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .buyin-title { font-size: 15px; font-weight: 600; }
+  .buyin-total { font-size: 22px; font-weight: 700; color: #1a6e3c; }
+  .buyin-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .buyin-row input { flex: 1; }
+  .buyin-add {
+    padding: 10px 16px;
+    background: #1a6e3c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .buyin-list { font-size: 14px; color: #8e8e93; }
+  .buyin-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 0.5px solid #e5e5ea;
+  }
+  .buyin-item:last-child { border-bottom: none; }
+  .buyin-item-left { color: #1c1c1e; font-weight: 500; }
+  .buyin-item-right { display: flex; align-items: center; gap: 10px; }
+  .remove-btn {
+    color: #ff3b30;
+    cursor: pointer;
+    font-size: 13px;
+    background: none;
+    border: none;
+    font-weight: 500;
+    padding: 2px 6px;
+  }
+  .net-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+  .net-pos { background: #d4edda; color: #0f5132; }
+  .net-neg { background: #fde8e8; color: #842029; }
+  .net-zero { background: #f2f2f7; color: #8e8e93; }
+  .net-label { font-size: 13px; font-weight: 500; }
+  .net-val { font-size: 20px; font-weight: 700; }
+  .divider { border: none; border-top: 0.5px solid #e5e5ea; margin: 14px 0; }
+  .empty-note { font-size: 13px; color: #8e8e93; padding: 4px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Casino Tracker</h1>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('log', this)">Log Session</button>
+  <button class="nav-btn" onclick="switchTab('buyin', this)">Buy-In</button>
+</div>
+
+<div class="content">
+
+  <div id="tab-log" class="tab-content active">
+    <div id="toast" class="toast"></div>
+    <div class="card">
+      <div class="fg">
+        <label>Date</label>
+        <input type="date" id="f-date" />
+      </div>
+      <div class="row2">
+        <div class="fg">
+          <label>Time In</label>
+          <input type="time" id="f-timein" />
+        </div>
+        <div class="fg">
+          <label>Time Out</label>
+          <input type="time" id="f-timeout" />
+        </div>
+      </div>
+      <div class="fg">
+        <label>Casino</label>
+        <input type="text" id="f-casino" placeholder="e.g. Mystic Lake" autocomplete="off" />
+      </div>
+      <div class="fg">
+        <label>State</label>
+        <input type="text" id="f-state" placeholder="e.g. MN" maxlength="2" style="text-transform:uppercase;" autocomplete="off" />
+      </div>
+      <div class="fg">
+        <label>P/L</label>
+        <div class="pl-wrap">
+          <div class="toggle">
+            <button class="tog win-on" id="tog-win" onclick="setType('win')">+ Win</button>
+            <button class="tog" id="tog-loss" onclick="setType('loss')">− Loss</button>
+          </div>
+          <input type="number" id="f-pl" placeholder="0" min="0" style="text-align:right;" inputmode="decimal" />
+        </div>
+      </div>
+      <div class="fg">
+        <label>Game Played</label>
+        <select id="f-game">
+          <option value="">Select game...</option>
+          <option>Slots</option>
+          <option>Blackjack</option>
+          <option>Poker</option>
+          <option>Roulette</option>
+          <option>Craps</option>
+          <option>Baccarat</option>
+          <option>Video Poker</option>
+          <option>Other Table Game</option>
+        </select>
+      </div>
+    </div>
+    <button class="primary-btn" id="save-btn" onclick="saveSession()">Save to Google Sheet</button>
+    <button class="sec-btn" onclick="clearForm()">Clear form</button>
+  </div>
+
+  <div id="tab-buyin" class="tab-content">
+    <div class="card">
+      <div class="buyin-header">
+        <span class="buyin-title">Session buy-ins</span>
+        <span class="buyin-total" id="buyin-total">$0</span>
+      </div>
+      <div class="buyin-row">
+        <input type="number" id="buyin-input" placeholder="Amount" min="1" inputmode="decimal" />
+        <button class="buyin-add" onclick="addBuyin()">+ Add</button>
+      </div>
+      <div class="buyin-list" id="buyin-list">
+        <div class="empty-note">No buy-ins yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="fg">
+        <label>Current session P/L</label>
+        <div class="pl-wrap">
+          <div class="toggle">
+            <button class="tog win-on" id="btog-win" onclick="setBType('win')">+ Win</button>
+            <button class="tog" id="btog-loss" onclick="setBType('loss')">− Loss</button>
+          </div>
+          <input type="number" id="b-pl" placeholder="0" min="0" style="text-align:right;" inputmode="decimal" oninput="updateNet()" />
+        </div>
+      </div>
+      <div id="net-display" class="net-box net-zero">
+        <span class="net-label">True net (after buy-ins)</span>
+        <span class="net-val" id="net-val">—</span>
+      </div>
+    </div>
+
+    <button class="sec-btn" onclick="clearBuyin()">Clear buy-in session</button>
+  </div>
+
+</div>
+
+<script>
+const SHEET_ID = '1JHba6WrbliZQ1SLRxzd2_pGcBG3XjH2h';
+const API_KEY = 'AIzaSyBdzHjfm9h1rtG7IiJr64HZhuXChiExyZY';
+const TAB = 'Slot Plays';
+const LS_FORM = 'casino_form_v1';
+const LS_BUYIN = 'casino_buyin_v2';
+
+let plType = 'win';
+let bType = 'win';
+let buyins = [];
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+function setType(t) {
+  plType = t;
+  document.getElementById('tog-win').className = 'tog' + (t === 'win' ? ' win-on' : '');
+  document.getElementById('tog-loss').className = 'tog' + (t === 'loss' ? ' loss-on' : '');
+  autoSaveForm();
+}
+
+function setBType(t) {
+  bType = t;
+  document.getElementById('btog-win').className = 'tog' + (t === 'win' ? ' win-on' : '');
+  document.getElementById('btog-loss').className = 'tog' + (t === 'loss' ? ' loss-on' : '');
+  updateNet();
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  if (type !== 'info') setTimeout(() => { el.className = 'toast'; el.style.display = ''; }, 4000);
+}
+
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hr = parseInt(h);
+  const ampm = hr >= 12 ? 'PM' : 'AM';
+  const hr12 = hr % 12 || 12;
+  return hr12 + ':' + m + ' ' + ampm;
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, mo, day] = d.split('-');
+  return mo + '/' + day + '/' + y;
+}
+
+function getFormData() {
+  return {
+    date: document.getElementById('f-date').value,
+    timein: document.getElementById('f-timein').value,
+    timeout: document.getElementById('f-timeout').value,
+    casino: document.getElementById('f-casino').value,
+    state: document.getElementById('f-state').value.toUpperCase(),
+    pl: document.getElementById('f-pl').value,
+    game: document.getElementById('f-game').value,
+    plType
+  };
+}
+
+function autoSaveForm() {
+  localStorage.setItem(LS_FORM, JSON.stringify(getFormData()));
+}
+
+function saveBuyinState() {
+  localStorage.setItem(LS_BUYIN, JSON.stringify({
+    buyins,
+    bType,
+    pl: document.getElementById('b-pl').value
+  }));
+}
+
+function restoreForm() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_FORM));
+    if (!d) return;
+    if (d.date) document.getElementById('f-date').value = d.date;
+    if (d.timein) document.getElementById('f-timein').value = d.timein;
+    if (d.timeout) document.getElementById('f-timeout').value = d.timeout;
+    if (d.casino) document.getElementById('f-casino').value = d.casino;
+    if (d.state) document.getElementById('f-state').value = d.state;
+    if (d.pl) document.getElementById('f-pl').value = d.pl;
+    if (d.game) document.getElementById('f-game').value = d.game;
+    if (d.plType) setType(d.plType);
+  } catch(e) {}
+}
+
+function restoreBuyin() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_BUYIN));
+    if (!d) return;
+    if (d.buyins) buyins = d.buyins;
+    if (d.bType) setBType(d.bType);
+    if (d.pl) document.getElementById('b-pl').value = d.pl;
+  } catch(e) {}
+  renderBuyins();
+  updateNet();
+}
+
+function addBuyin() {
+  const v = parseFloat(document.getElementById('buyin-input').value);
+  if (!v || v <= 0) return;
+  buyins.push(v);
+  document.getElementById('buyin-input').value = '';
+  renderBuyins();
+  updateNet();
+  saveBuyinState();
+}
+
+function removeBuyin(i) {
+  buyins.splice(i, 1);
+  renderBuyins();
+  updateNet();
+  saveBuyinState();
+}
+
+function renderBuyins() {
+  const total = buyins.reduce((a, b) => a + b, 0);
+  document.getElementById('buyin-total').textContent = '$' + total.toFixed(0);
+  const list = document.getElementById('buyin-list');
+  if (!buyins.length) {
+    list.innerHTML = '<div class="empty-note">No buy-ins yet</div>';
+    return;
+  }
+  list.innerHTML = buyins.map((v, i) =>
+    `<div class="buyin-item">
+      <span class="buyin-item-left">Buy-in ${i + 1}</span>
+      <span class="buyin-item-right">
+        <span>$${v.toFixed(0)}</span>
+        <button class="remove-btn" onclick="removeBuyin(${i})">Remove</button>
+      </span>
+    </div>`
+  ).join('');
+}
+
+function updateNet() {
+  saveBuyinState();
+  const total = buyins.reduce((a, b) => a + b, 0);
+  const plVal = parseFloat(document.getElementById('b-pl').value) || 0;
+  const pl = bType === 'win' ? plVal : -plVal;
+  const net = pl - total;
+  const box = document.getElementById('net-display');
+  const val = document.getElementById('net-val');
+  if (!total && !plVal) {
+    val.textContent = '—';
+    box.className = 'net-box net-zero';
+    return;
+  }
+  val.textContent = (net >= 0 ? '+' : '') + '$' + net.toFixed(0);
+  box.className = 'net-box ' + (net > 0 ? 'net-pos' : net < 0 ? 'net-neg' : 'net-zero');
+}
+
+function clearBuyin() {
+  buyins = [];
+  document.getElementById('b-pl').value = '';
+  setBType('win');
+  renderBuyins();
+  updateNet();
+  localStorage.removeItem(LS_BUYIN);
+}
+
+function clearFormFields() {
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-timein').value = '';
+  document.getElementById('f-timeout').value = '';
+  document.getElementById('f-casino').value = '';
+  document.getElementById('f-state').value = '';
+  document.getElementById('f-pl').value = '';
+  document.getElementById('f-game').value = '';
+  setType('win');
+}
+
+function clearForm() {
+  clearFormFields();
+  localStorage.removeItem(LS_FORM);
+}
+
+async function saveSession() {
+  const d = getFormData();
+  if (!d.date || !d.timein || !d.timeout || !d.casino || !d.state || !d.pl || !d.game) {
+    showToast('Please fill in all fields.', 'err');
+    return;
+  }
+  const plVal = parseFloat(d.pl);
+  const plFinal = d.plType === 'win' ? plVal : -plVal;
+  const row = [fmtDate(d.date), fmtTime(d.timein), fmtTime(d.timeout), d.casino, d.state, plFinal, d.game];
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  showToast('Saving to Google Sheet...', 'info');
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(TAB)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS&key=${API_KEY}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [row] })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'API error');
+    }
+    showToast('Saved! Row added to Slot Plays.', 'ok');
+    localStorage.removeItem(LS_FORM);
+    clearFormFields();
+    clearBuyin();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Save to Google Sheet';
+}
+
+['f-date','f-timein','f-timeout','f-casino','f-state','f-pl','f-game'].forEach(id => {
+  document.getElementById(id).addEventListener('input', autoSaveForm);
+});
+document.getElementById('b-pl').addEventListener('input', updateNet);
+document.getElementById('buyin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addBuyin();
+});
+
+restoreForm();
+restoreBuyin();
+
+const today = new Date().toISOString().split('T')[0];
+if (!document.getElementById('f-date').value) {
+  document.getElementById('f-date').value = today;
+}
+</script>
+</body>
+</html>
